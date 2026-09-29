@@ -19,18 +19,22 @@ jobs:
           java-version: 17
           cache: gradle
 
-      - name: Set up Android SDK
-        uses: android-actions/setup-android@v3
+      - name: Set up Android SDK packages
+        # NOTE: ubuntu-latest runners already ship an Android SDK
+        # ($ANDROID_HOME). We only ensure the exact platform / NDK / CMake
+        # this project needs — no third-party setup action required.
+        run: |
+          echo "ANDROID_HOME=$ANDROID_HOME"
+          ls "$ANDROID_HOME/cmdline-tools"
+          yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --licenses
+          "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" \
+            "platforms;android-34" "build-tools;34.0.0" "platform-tools" \
+            "ndk;25.2.9519653" "cmake;3.22.1"
 
       - name: Set up Gradle 8.7
         uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: 8.7
-
-      - name: Accept licenses / install platform + NDK
-        run: |
-          yes | sdkmanager --licenses
-          sdkmanager "platforms;android-34" "build-tools;34.0.0" "platform-tools" "ndk;25.2.9519653" "cmake;3.22.1"
 
       - name: Build debug APK (playable CTF artifact)
         run: gradle assembleDebug --stacktrace
