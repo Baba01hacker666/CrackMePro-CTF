@@ -2,7 +2,8 @@ package com.ctf.crackme
 
 import android.app.Activity
 import android.util.Log
-import com.google.android.play.integrity.IntegrityManagerFactory
+import com.google.android.play.core.integrity.IntegrityManagerFactory
+import com.google.android.play.core.integrity.IntegrityTokenRequest
 import kotlinx.coroutines.tasks.await
 import java.util.UUID
 
@@ -19,7 +20,7 @@ object PlayIntegrityCheck {
     suspend fun deviceGenuine(activity: Activity, nonce: String? = null): Boolean? {
         return try {
             val mgr = IntegrityManagerFactory.create(activity)
-            val req = com.google.android.play.integrity.IntegrityTokenRequest.builder()
+            val req = IntegrityTokenRequest.builder()
                 .setNonce(nonce ?: UUID.randomUUID().toString())
                 .build()
             val resp = mgr.requestIntegrityToken(req).await()

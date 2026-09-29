@@ -2,49 +2,53 @@ package com.ctf.crackme
 
 import android.app.Application
 import android.util.Log
+import app.talsec.rasp.security.api.SuspiciousAppInfo
+import app.talsec.rasp.security.api.Talsec
+import app.talsec.rasp.security.api.TalsecConfig
+import app.talsec.rasp.security.api.TalsecMode
+import app.talsec.rasp.security.api.ThreatListener
 
 /**
- * Typed FreeRASP wiring, isolated so any SDK API drift only touches this file.
- * Verified against TalsecSecurity-Community 19.x docs:
- * Talsec.start(app, config, listener : ThreatListener.ThreatDetected).
+ * Typed FreeRASP wiring (TalsecSecurity-Community 19.x API), isolated so any
+ * SDK API drift only touches this file.
+ * Docs: https://docs.talsec.app/freerasp/freerasp/integration/android
  */
 internal object TypedStarter {
     fun start(ctx: android.content.Context, onThreat: (String) -> Unit) {
         try {
             val app = ctx as Application
-            val config = com.aheaditec.talsec.security.TalsecConfig(
+            val config = TalsecConfig.Builder(
                 ctx.packageName,
-                // TODO(author): put YOUR release cert SHA-256 here before Play upload.
-                signingCertHashes = arrayOf(),
-                supportedAlternativeStores = arrayOf(),
-                watcherMail = "ctf@example.com"
+                // TODO(author): put YOUR release cert SHA-256 (base64) here before Play upload.
+                arrayOf()
             )
-            com.aheaditec.talsec.security.Talsec.start(
-                app, config,
-                object : com.aheaditec.talsec.security.ThreatListener.ThreatDetected {
-                    override fun onRootDetected() = onThreat("freerasp:root")
-                    override fun onHookDetected() = onThreat("freerasp:hook")
-                    override fun onEmulatorDetected() = onThreat("freerasp:emulator")
-                    override fun onTamperDetected() = onThreat("freerasp:tamper")
-                    override fun onDeviceBindingDetected() = onThreat("freerasp:device-binding")
-                    override fun onUntrustedInstallationSourceDetected() = onThreat("freerasp:store")
-                    override fun onDebuggerDetected() = onThreat("freerasp:debugger")
-                    override fun onObfuscationIssuesDetected() = onThreat("freerasp:obfuscation")
-                    override fun onMalwareDetected(p0: List<com.aheaditec.talsec.security.SuspiciousAppInfo>?) =
-                        onThreat("freerasp:malware")
-                    override fun onVPNDetected() = onThreat("freerasp:vpn")
-                    override fun onDeveloperModeDetected() = onThreat("freerasp:devmode")
-                    override fun onADBEnabledDetected() = onThreat("freerasp:adb")
-                    override fun onScreenRecordingDetected() = onThreat("freerasp:screen")
-                    override fun onScreenshotDetected() = onThreat("freerasp:screenshot")
-                    override fun onMultiInstanceDetected() = onThreat("freerasp:multi-instance")
-                    override fun onPasscodeDetected() = onThreat("freerasp:passcode")
-                    override fun onSecureHardwareNotAvailableDetected() = onThreat("freerasp:hw")
-                    override fun onSystemVPNDetected() = onThreat("freerasp:sysvpn")
-                    override fun onTimeSpoofingDetected() = onThreat("freerasp:time")
-                    override fun onSimulatorDetected() = onThreat("freerasp:simulator")
-                }
-            )
+                .watcherMail("ctf@example.com")
+                .supportedAlternativeStores(arrayOf())
+                .prod(false)
+                .build()
+
+            val threats = object : ThreatListener.ThreatDetected() {
+                override fun onPrivilegedAccess() = onThreat("freerasp:privileged-access")
+                override fun onDebug() = onThreat("freerasp:debug")
+                override fun onSimulator() = onThreat("freerasp:simulator")
+                override fun onAppIntegrity() = onThreat("freerasp:integrity")
+                override fun onUnofficialStore() = onThreat("freerasp:store")
+                override fun onHooks() = onThreat("freerasp:hooks")
+                override fun onDeviceBinding() = onThreat("freerasp:device-binding")
+                override fun onObfuscationIssues() = onThreat("freerasp:obfuscation")
+                override fun onScreenshot() = onThreat("freerasp:screenshot")
+                override fun onScreenRecording() = onThreat("freerasp:screen-recording")
+                override fun onMultiInstance() = onThreat("freerasp:multi-instance")
+                override fun onUnsecureWifi() = onThreat("freerasp:wifi")
+                override fun onTimeSpoofing() = onThreat("freerasp:time")
+                override fun onLocationSpoofing() = onThreat("freerasp:location")
+                override fun onAutomation() = onThreat("freerasp:automation")
+                override fun onBootloader() = onThreat("freerasp:bootloader")
+                override fun onMalware(packageInfo: List<SuspiciousAppInfo>) =
+                    onThreat("freerasp:malware")
+            }
+            ThreatListener(threats).registerListener(app)
+            Talsec.start(app, config, TalsecMode.BACKGROUND)
         } catch (t: Throwable) {
             Log.w("CrackMe", "FreeRASP typed start skipped: ${t.message}")
         }

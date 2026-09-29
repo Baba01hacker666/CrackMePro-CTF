@@ -20,7 +20,7 @@ object FreeRaspManager {
 
     fun init(ctx: Context) {
         try {
-            Class.forName("com.aheaditec.talsec.security.Talsec")
+            Class.forName("app.talsec.rasp.security.api.Talsec")
             Log.d("CrackMe", "FreeRASP SDK present — wiring via typed helper")
             TypedStarter.start(ctx) { hit(it) }
         } catch (t: Throwable) {

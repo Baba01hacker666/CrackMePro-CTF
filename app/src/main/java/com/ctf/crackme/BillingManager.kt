@@ -138,17 +138,20 @@ object BillingManager {
         onDone: (PayResult) -> Unit
     ) {
         val pay: (Boolean) -> Unit = { ok ->
-            if (!ok) { onDone(PayResult.Cancelled); return@let }
-            Thread {
-                SystemClock.sleep(1200)
-                val t = mintToken()
-                activity.runOnUiThread {
-                    if (LicenseValidator.isValidToken(t)) {
-                        SecurePrefs.savePurchase(activity, t)
-                        onDone(PayResult.Success(t, viaPlay = false))
-                    } else onDone(PayResult.Failed("issuer check"))
-                }
-            }.start()
+            if (!ok) {
+                onDone(PayResult.Cancelled)
+            } else {
+                Thread {
+                    SystemClock.sleep(1200)
+                    val t = mintToken()
+                    activity.runOnUiThread {
+                        if (LicenseValidator.isValidToken(t)) {
+                            SecurePrefs.savePurchase(activity, t)
+                            onDone(PayResult.Success(t, viaPlay = false))
+                        } else onDone(PayResult.Failed("issuer check"))
+                    }
+                }.start()
+            }
         }
         if (mockConfirm == null) pay(true) else mockConfirm(pay)
     }
@@ -204,10 +207,11 @@ object BillingManager {
                             .setProductType(BillingClient.ProductType.INAPP).build()
                     )
                 ).build()
-            ) { res, list ->
+            ) { res, result ->
                 cont.resume(
-                    if (res.responseCode == BillingClient.BillingResponseCode.OK) list?.firstOrNull()
-                    else null
+                    if (res.responseCode == BillingClient.BillingResponseCode.OK) {
+                        result.productDetailsList.firstOrNull()
+                    } else null
                 )
             }
         }

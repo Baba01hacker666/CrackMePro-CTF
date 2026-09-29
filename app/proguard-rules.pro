@@ -20,5 +20,5 @@
 # (RaspManager, LicenseValidator, CryptoVault, NativeBridge all get renamed)
 
 # FreeRASP keep rules (required by SDK)
--keep class com.aheaditec.talsec.security.** { *; }
--dontwarn com.aheaditec.talsec.security.**
+-keep class app.talsec.** { *; }
+-dontwarn app.talsec.**
