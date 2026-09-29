@@ -1,0 +1,25 @@
+// Top-level build file
+buildscript {
+    repositories {
+        google()
+        mavenCentral()
+    }
+    dependencies {
+        classpath 'com.android.tools.build:gradle:8.5.2'
+        classpath 'org.jetbrains.kotlin:kotlin-gradle-plugin:1.9.24'
+    }
+}
+
+allprojects {
+    repositories {
+        google()
+        mavenCentral()
+        // Talsec freeRASP artifact registry (external RASP)
+        maven { url "https://europe-west3-maven.pkg.dev/talsec-artifact-repository/freerasp" }
+        maven { url "https://jitpack.io" }
+    }
+}
+
+tasks.register('clean', Delete) {
+    delete rootProject.buildDir
+}

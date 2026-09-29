@@ -1,0 +1,88 @@
+plugins {
+    id 'com.android.application'
+    id 'org.jetbrains.kotlin.android'
+}
+
+android {
+    namespace 'com.ctf.crackme'
+    compileSdk 34
+
+    defaultConfig {
+        applicationId "com.ctf.crackme"
+        minSdk 26
+        targetSdk 34
+        versionCode 1
+        versionName "1.0.0-ctf"
+
+        externalNativeBuild {
+            cmake {
+                cppFlags "-std=c++17"
+            }
+        }
+        ndk {
+            abiFilters 'armeabi-v7a', 'arm64-v8a', 'x86_64'
+        }
+        // CTF reference server for purchase verification. Empty = offline mode.
+        // CI passes -PSERVER_URL=https://your-server/verify for online builds.
+        buildConfigField "String", "SERVER_URL", "\"" + (project.hasProperty("SERVER_URL") ? project.SERVER_URL : "") + "\""
+        // Play Console product id for PRO. Create it in Play Console > Monetize.
+        buildConfigField "String", "PRO_PRODUCT_ID", "\"pro_lifetime\""
+    }
+
+    // Default Android debug key is used for BOTH debug and release so the
+    // GitHub Actions APKs install anywhere for the CTF. Before Play upload,
+    // replace release signing with your real keystore + cert.
+    buildTypes {
+        release {
+            minifyEnabled true
+            shrinkResources true
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            signingConfig signingConfigs.debug
+        }
+        debug {
+            minifyEnabled false
+            applicationIdSuffix ".debug"
+        }
+    }
+
+    externalNativeBuild {
+        cmake {
+            path "src/main/cpp/CMakeLists.txt"
+            version "3.22.1+"
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+    kotlinOptions {
+        jvmTarget = '17'
+    }
+    buildFeatures {
+        viewBinding false
+        buildConfig true
+    }
+}
+
+dependencies {
+    implementation 'androidx.core:core-ktx:1.13.1'
+    implementation 'androidx.appcompat:appcompat:1.7.0'
+    implementation 'com.google.android.material:material:1.12.0'
+    implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
+    implementation 'androidx.security:security-crypto:1.1.0-alpha06'
+
+    // ===== GOOGLE PLAY SDKs: Billing (payment) + Integrity (device verdict) =====
+    def billing_version = "9.1.0"
+    implementation "com.android.billingclient:billing:$billing_version"
+    implementation "com.android.billingclient:billing-ktx:$billing_version"
+    implementation 'com.google.android.play:integrity:1.6.0'
+    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.8.1'
+    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.8.1'
+
+    // ===== EXTERNAL RASP: Talsec FreeRASP (Community) =====
+    // Detects: root/Magisk, hooks (Frida/Xposed), emulator, debugger,
+    // tamper, repackaging, unofficial store, VPN/bots etc.
+    // Docs: https://docs.talsec.app/freerasp/freerasp/integration/android
+    implementation 'com.aheaditec.talsec.security:TalsecSecurity-Community:19.2.1'
+}

@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="Theme.CrackMePro" parent="Theme.Material3.Dark.NoActionBar">
+        <item name="colorPrimary">#7CFC98</item>
+        <item name="android:windowBackground">#0F1115</item>
+    </style>
+</resources>
