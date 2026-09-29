@@ -73,12 +73,13 @@ dependencies {
     implementation 'androidx.security:security-crypto:1.1.0-alpha06'
 
     // ===== GOOGLE PLAY SDKs: Billing (payment) + Integrity (device verdict) =====
+    // NOTE: billing-ktx intentionally omitted — its Kotlin 2.3 metadata breaks
+    // older compilers and we only use the Java-style callback APIs anyway.
     def billing_version = "9.1.0"
     implementation "com.android.billingclient:billing:$billing_version"
-    implementation "com.android.billingclient:billing-ktx:$billing_version"
     implementation 'com.google.android.play:integrity:1.6.0'
-    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.8.1'
-    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.8.1'
+    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.10.1'
+    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.10.1'
 
     // ===== EXTERNAL RASP: Talsec FreeRASP (Community) =====
     // Detects: root/Magisk, hooks (Frida/Xposed), emulator, debugger,
